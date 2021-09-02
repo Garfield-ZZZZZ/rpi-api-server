@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  rpi-api-server:
+    image: "garfieldz.azurecr.io/rpi-api-server:64dc750"
+    user: nobody
+    restart: unless-stopped
+    environment:
+      LISTEN_ADDR: ":9099"
+      PUSH_SERVICE: "ifttt"
+      IFTTT_KEY: ""
+      IFTTT_EVENT_NAME: ""
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
