@@ -8,7 +8,7 @@ RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o the_binary main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -a -o the_binary main.go
 
 FROM alpine:3.14.1
 WORKDIR /

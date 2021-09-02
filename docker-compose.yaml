@@ -1,12 +1,15 @@
 version: "3.8"
 services:
   rpi-api-server:
-    image: "garfieldz.azurecr.io/rpi-api-server:64dc750"
+    image: "garfieldz.azurecr.io/rpi-api-server:661bd66"
     user: nobody
+    ports:
+      - "127.0.0.1:9099:9099"
     restart: unless-stopped
     environment:
       LISTEN_ADDR: ":9099"
       PUSH_SERVICE: "ifttt"
+      WHOISATHOME_USERS: ""
       IFTTT_KEY: ""
       IFTTT_EVENT_NAME: ""
     logging:
