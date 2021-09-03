@@ -12,21 +12,16 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-type Plugin interface {
-	Start()
-	HandleDebugPage(rw http.ResponseWriter, req *http.Request)
-}
-
 func main() {
 	var logger = utils.GetLogger("main")
 	var listenAddr = utils.GetEnvVarString("LISTEN_ADDR", ":9099")
 	logger.Printf("LISTEN_ADDR: %q", listenAddr)
 
-	var enabledPlugins []Plugin
+	var enabledPlugins []plugins.Plugin
 	enabledPlugins = append(enabledPlugins, &plugins.RpiTemperatureGauge{})
 	enabledPlugins = append(enabledPlugins, &plugins.WhoIsAtHome{})
 
-	var pluginMap = map[string]Plugin{}
+	var pluginMap = map[string]plugins.Plugin{}
 
 	var sb strings.Builder
 	for _, p := range enabledPlugins {
@@ -48,7 +43,7 @@ func main() {
 			var pluginName = queries.Get("plugin")
 			if plugin, exists := pluginMap[pluginName]; exists {
 				logger.Printf("got debugging page request for %s", pluginName)
-				plugin.HandleDebugPage(rw, req)
+				plugin.ServeHTTP(rw, req)
 			} else {
 				logger.Println("got request for main page")
 				rw.WriteHeader(http.StatusOK)

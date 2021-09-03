@@ -40,7 +40,7 @@ func (r *RpiTemperatureGauge) Start() {
 	})
 }
 
-func (r *RpiTemperatureGauge) HandleDebugPage(rw http.ResponseWriter, req *http.Request) {
+func (r *RpiTemperatureGauge) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	var cpuTemp, cpuErr = r.readCpuTemp()
 	rw.WriteHeader(http.StatusOK)
 	io.WriteString(rw, fmt.Sprintf(`cpuTempPath: %s

@@ -30,16 +30,17 @@ type WhoIsAtHome struct {
 	statusGaugeVec       *prometheus.GaugeVec
 	respCounterVec       *prometheus.CounterVec
 	logger               *log.Logger
+	utils.HttpMethodMux
 }
 
 func (w *WhoIsAtHome) Start() {
 	w.logger = utils.GetLogger("WhoIsAtHome")
 
 	w.logger.Printf("registering handler at %s", apiPath)
-	utils.HttpMethodMux{
+	w.HttpMethodMux = utils.HttpMethodMux{
 		GetHandler:  w.HandleDebugPage,
 		PostHandler: w.HandleUpdate,
-	}.Handle(apiPath)
+	}
 
 	w.notification = utils.GetNotificationPusher()
 	w.notificationPriority = utils.GetEnvVarInt("WHOISATHOME_NOTIFICATION_PRIORITY", -1)
