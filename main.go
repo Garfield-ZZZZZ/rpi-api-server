@@ -20,7 +20,7 @@ type Plugin interface {
 func main() {
 	var logger = utils.GetLogger("main")
 	var listenAddr = utils.GetEnvVarString("LISTEN_ADDR", ":9099")
-	logger.Printf("LISTEN_ADDR: %q\n", listenAddr)
+	logger.Printf("LISTEN_ADDR: %q", listenAddr)
 
 	var enabledPlugins []Plugin
 	enabledPlugins = append(enabledPlugins, &plugins.RpiTemperatureGauge{})
@@ -38,7 +38,7 @@ func main() {
 		var path = fmt.Sprintf("/?plugin=%s", name)
 		sb.WriteString(fmt.Sprintf("<a href=\"%s\">%s</a><br>", path, name))
 		pluginMap[name] = p
-		logger.Printf("starting %s\n", name)
+		logger.Printf("starting %s", name)
 		p.Start()
 	}
 	var mainpage = sb.String()
@@ -47,7 +47,7 @@ func main() {
 			var queries = req.URL.Query()
 			var pluginName = queries.Get("plugin")
 			if plugin, exists := pluginMap[pluginName]; exists {
-				logger.Printf("got debugging page request for %s\n", pluginName)
+				logger.Printf("got debugging page request for %s", pluginName)
 				plugin.HandleDebugPage(rw, req)
 			} else {
 				logger.Println("got request for main page")

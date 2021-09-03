@@ -25,7 +25,7 @@ func GetIfttt(key string, eventName string) *Ifttt {
 		logger: GetLogger("Ifttt"),
 		url:    fmt.Sprintf("https://maker.ifttt.com/trigger/%s/with/key/%s", eventName, key),
 	}
-	ret.logger.Printf("ifttt instance created, target event: %q\n", eventName)
+	ret.logger.Printf("ifttt instance created, target event: %q", eventName)
 	return ret
 }
 
@@ -36,8 +36,10 @@ func (i *Ifttt) Send(title string, message string, priority int) error {
 		return err
 	}
 	if resp.StatusCode == http.StatusOK {
+		i.logger.Printf("notification sent")
 		return nil
 	} else {
+		i.logger.Printf("request failed with status code %d", resp.StatusCode)
 		respBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return err

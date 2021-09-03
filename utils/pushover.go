@@ -31,7 +31,7 @@ func GetPushover(token string, user string, device string) *Pushover {
 		device: device,
 		logger: GetLogger("Pushover"),
 	}
-	ret.logger.Printf("pushover instance created, target device: %q\n", ret.device)
+	ret.logger.Printf("pushover instance created, target device: %q", ret.device)
 	return ret
 }
 
@@ -55,6 +55,9 @@ func (p *Pushover) Send(title string, message string, priority int) error {
 	if err != nil {
 		return err
 	}
+	if resp.StatusCode != http.StatusOK {
+		p.logger.Printf("request failed with response code %d", resp.StatusCode)
+	}
 	var result = pushoverMessageResponse{}
 	defer resp.Body.Close()
 	respBytes, err := ioutil.ReadAll(resp.Body)
@@ -64,13 +67,13 @@ func (p *Pushover) Send(title string, message string, priority int) error {
 	var respPayload = string(respBytes)
 	err = json.Unmarshal(respBytes, &result)
 	if err != nil {
-		p.logger.Printf("failed to parse response: %q\n", respPayload)
+		p.logger.Printf("failed to parse response: %q", respPayload)
 		return err
 	}
 	if result.Status != 1 || resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("pushover request failed: %q", respPayload)
 	}
-	p.logger.Println("message sent")
+	p.logger.Printf("message sent")
 	return nil
 }
 

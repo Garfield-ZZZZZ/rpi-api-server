@@ -2,9 +2,14 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 )
+
+func GetLogger(name string) *log.Logger {
+	return log.New(os.Stdout, fmt.Sprintf("[%s] ", name), log.Ldate|log.Ltime|log.Lmsgprefix)
+}
 
 func GetEnvVarString(name string, defaultValue string) string {
 	var value, exists = os.LookupEnv(name)

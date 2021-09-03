@@ -43,16 +43,16 @@ func (w *WhoIsAtHome) Start() {
 
 	w.notification = utils.GetNotificationPusher()
 	w.notificationPriority = utils.GetEnvVarInt("WHOISATHOME_NOTIFICATION_PRIORITY", -1)
-	w.logger.Printf("WHOISATHOME_NOTIFICATION_PRIORITY: %d\n", w.notificationPriority)
+	w.logger.Printf("WHOISATHOME_NOTIFICATION_PRIORITY: %d", w.notificationPriority)
 
-	w.logger.Printf("registering gauge as %s\n", promGaugeName)
+	w.logger.Printf("registering gauge as %s", promGaugeName)
 	w.statusGaugeVec = promauto.NewGaugeVec(prometheus.GaugeOpts{Name: promGaugeName}, []string{promMemberLabel})
-	w.logger.Printf("registering request counter as %s\n", promReqCounterName)
+	w.logger.Printf("registering request counter as %s", promReqCounterName)
 	w.respCounterVec = promauto.NewCounterVec(prometheus.CounterOpts{Name: promReqCounterName}, []string{promRespStatusLabel, promReqTypeLabel})
 
 	w.currentStatus = map[string]bool{}
 	var validUsers = utils.GetEnvVarString("WHOISATHOME_USERS", "")
-	w.logger.Printf("WHOISATHOME_USERS: %q\n", validUsers)
+	w.logger.Printf("WHOISATHOME_USERS: %q", validUsers)
 	for _, user := range strings.Split(validUsers, " ") {
 		if user != "" {
 			w.currentStatus[user] = true
@@ -114,7 +114,7 @@ func (w *WhoIsAtHome) HandleUpdate(rw http.ResponseWriter, req *http.Request) {
 	}
 	err = w.notification.Send("Home", fmt.Sprintf("%s is %s", who, statusStr), w.notificationPriority)
 	if err != nil {
-		w.logger.Printf("failed to send notification: %s\n", err)
+		w.logger.Printf("failed to send notification: %s", err)
 		respStatus = http.StatusInternalServerError
 		rw.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(rw, fmt.Sprintf("failed to send notification: %s\n", err))

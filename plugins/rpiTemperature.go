@@ -24,16 +24,16 @@ func (r *RpiTemperatureGauge) Start() {
 	r.logger = utils.GetLogger("RpiTemperatureGauge")
 
 	r.cpuTempFile = utils.GetEnvVarString("CPU_TEMP_FILE", "/sys/class/thermal/thermal_zone0/temp")
-	r.logger.Printf("CPU_TEMP_FILE: %q\n", r.cpuTempFile)
+	r.logger.Printf("CPU_TEMP_FILE: %q", r.cpuTempFile)
 
-	r.logger.Printf("registering Rpi CPU Temperature Gauge as %s\n", cpuTempMetricName)
+	r.logger.Printf("registering Rpi CPU Temperature Gauge as %s", cpuTempMetricName)
 	promauto.NewGaugeFunc(prometheus.GaugeOpts{
 		Name: cpuTempMetricName,
 		Help: fmt.Sprintf("CPU temperature readout from %s", r.cpuTempFile),
 	}, func() float64 {
 		var ret, err = r.readCpuTemp()
 		if err != nil {
-			r.logger.Printf("Got exception while reading CPU temerature: %s\n", err)
+			r.logger.Printf("Got exception while reading CPU temerature: %s", err)
 			return 0
 		}
 		return ret
