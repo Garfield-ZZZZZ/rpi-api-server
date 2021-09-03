@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	apiPath             = "/home"
 	promGaugeName       = "family_member_ishome"
 	promMemberLabel     = "name"
 	promReqCounterName  = "family_api_request"
@@ -30,17 +29,10 @@ type WhoIsAtHome struct {
 	statusGaugeVec       *prometheus.GaugeVec
 	respCounterVec       *prometheus.CounterVec
 	logger               *log.Logger
-	utils.HttpMethodMux
 }
 
 func (w *WhoIsAtHome) Start() {
 	w.logger = utils.GetLogger("WhoIsAtHome")
-
-	w.logger.Printf("registering handler at %s", apiPath)
-	w.HttpMethodMux = utils.HttpMethodMux{
-		GetHandler:  w.HandleDebugPage,
-		PostHandler: w.HandleUpdate,
-	}
 
 	w.notification = utils.GetNotificationPusher()
 	w.notificationPriority = utils.GetEnvVarInt("WHOISATHOME_NOTIFICATION_PRIORITY", -1)
@@ -59,6 +51,19 @@ func (w *WhoIsAtHome) Start() {
 			w.currentStatus[user] = true
 		}
 		w.statusGaugeVec.With(map[string]string{promMemberLabel: user}).Set(w.getGaugeStatusForIsHome(true))
+	}
+}
+func (w *WhoIsAtHome) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	w.logger.Printf("Got new request from %q for %q using method %s", req.RemoteAddr, req.RequestURI, req.Method)
+	switch req.Method {
+	case http.MethodGet:
+		w.HandleDebugPage(rw, req)
+	case http.MethodPost:
+		w.HandleUpdate(rw, req)
+	default:
+		w.logger.Printf("unregistered method")
+		rw.WriteHeader(http.StatusBadRequest)
+		io.WriteString(rw, fmt.Sprintf("invalid method: %s\n", req.Method))
 	}
 }
 

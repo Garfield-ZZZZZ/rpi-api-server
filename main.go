@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"garfield/rpi-api-server/plugins"
 	"garfield/rpi-api-server/utils"
-	"io"
 	"net/http"
-	"reflect"
-	"strings"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -15,42 +12,34 @@ import (
 func main() {
 	var logger = utils.GetLogger("main")
 	var listenAddr = utils.GetEnvVarString("LISTEN_ADDR", ":9099")
+	var pluginName = utils.GetEnvVarString("PLUGIN_NAME", "")
 	logger.Printf("LISTEN_ADDR: %q", listenAddr)
+	logger.Printf("PLUGIN_NAME: %q", pluginName)
 
-	var enabledPlugins []plugins.Plugin
-	enabledPlugins = append(enabledPlugins, &plugins.RpiTemperatureGauge{})
-	enabledPlugins = append(enabledPlugins, &plugins.WhoIsAtHome{})
-
-	var pluginMap = map[string]plugins.Plugin{}
-
-	var sb strings.Builder
-	for _, p := range enabledPlugins {
-		var t = reflect.TypeOf(p)
-		if t.Kind() == reflect.Ptr {
-			t = t.Elem()
-		}
-		var name = t.Name()
-		var path = fmt.Sprintf("/?plugin=%s", name)
-		sb.WriteString(fmt.Sprintf("<a href=\"%s\">%s</a><br>", path, name))
-		pluginMap[name] = p
-		logger.Printf("starting %s", name)
-		p.Start()
+	var pluginMap = map[string]plugins.Plugin{
+		"temperature": &plugins.RpiTemperatureGauge{},
+		"ishome":      &plugins.WhoIsAtHome{},
 	}
-	var mainpage = sb.String()
-	utils.HttpMethodMux{
-		GetHandler: func(rw http.ResponseWriter, req *http.Request) {
-			var queries = req.URL.Query()
-			var pluginName = queries.Get("plugin")
-			if plugin, exists := pluginMap[pluginName]; exists {
-				logger.Printf("got debugging page request for %s", pluginName)
-				plugin.ServeHTTP(rw, req)
-			} else {
-				logger.Println("got request for main page")
-				rw.WriteHeader(http.StatusOK)
-				io.WriteString(rw, mainpage)
-			}
-		},
-	}.Handle("/")
+
+	var plugin, exists = pluginMap[pluginName]
+	if !exists {
+		logger.Printf("plugin %q not found", pluginName)
+		for name := range pluginMap {
+			logger.Printf("available plugin: %s", name)
+		}
+
+		panic("invalid plugin name")
+	}
+
+	logger.Printf("starting %s", pluginName)
+	plugin.Start()
+	var path = fmt.Sprintf("/%s", pluginName)
+	logger.Printf("registering handler at %s", path)
+	http.Handle(path, plugin)
+
+	http.HandleFunc("/", func(rw http.ResponseWriter, req *http.Request) {
+		http.Redirect(rw, req, path, http.StatusFound)
+	})
 	http.Handle("/metrics", promhttp.Handler())
 
 	logger.Println("starting http server")
