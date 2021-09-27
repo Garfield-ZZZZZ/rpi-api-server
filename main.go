@@ -17,9 +17,10 @@ func main() {
 	logger.Printf("PLUGIN_NAME: %q", pluginName)
 
 	var pluginMap = map[string]plugins.Plugin{
-		"temperature":    &plugins.RpiTemperatureGauge{},
-		"ishome":         &plugins.WhoIsAtHome{},
-		"networkmonitor": &plugins.NetworkMonitor{},
+		"temperature":         &plugins.RpiTemperatureGauge{},
+		"ishome":              &plugins.WhoIsAtHome{},
+		"networkmonitor":      &plugins.NetworkMonitor{},
+		"networkavailability": &plugins.NetworkAvailability{},
 	}
 
 	var plugin, exists = pluginMap[pluginName]
