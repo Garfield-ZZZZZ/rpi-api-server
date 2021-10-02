@@ -32,3 +32,20 @@ services:
       options:
         max-size: "1m"
         max-file: "10"
+  network:
+    image: "garfieldz.azurecr.io/rpi-api-server:4fbbe94"
+    user: nobody
+    ports:
+      - "127.0.0.1:9097:9097"
+    restart: unless-stopped
+    environment:
+      PLUGIN_NAME: "networkavailability"
+      LISTEN_ADDR: ":9097"
+      ProxyUrl: "http://rpi:1080"
+    extra_hosts:
+      - "rpi:host-gateway"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
