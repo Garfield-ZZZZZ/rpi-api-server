@@ -118,7 +118,9 @@ func (w *WhoIsAtHome) HandleUpdate(rw http.ResponseWriter, req *http.Request) {
 	if !isHome {
 		statusStr = "away"
 	}
-	err = w.notification.Send("Home", fmt.Sprintf("%s is %s", who, statusStr), w.notificationPriority)
+	if w.notification != nil {
+		err = w.notification.Send("Home", fmt.Sprintf("%s is %s", who, statusStr), w.notificationPriority)
+	}
 	if err != nil {
 		w.logger.Printf("failed to send notification: %s", err)
 		respStatus = http.StatusInternalServerError

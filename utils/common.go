@@ -56,6 +56,8 @@ func GetNotificationPusher() NotificationPusher {
 		var device = GetEnvVarString("PUSHOVER_DEVICE", "")
 		var ret = GetPushover(token, user, device)
 		return ret
+	case "disabled":
+		return nil
 	default:
 		panic(fmt.Sprintf("invalid push service: %q", service))
 	}
