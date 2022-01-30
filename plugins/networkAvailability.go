@@ -113,6 +113,9 @@ func (n *NetworkAvailability) checkAvailability() map[string]float64 {
 			n.logger.Printf("got %d from %s", resp.StatusCode, name)
 			ret[name] = 1
 		}
+		if resp != nil {
+			resp.Body.Close()
+		}
 	}
 	return ret
 }
