@@ -2,8 +2,10 @@ package plugins
 
 import (
 	"fmt"
+	"encoding/json"
 	"garfield/rpi-api-server/utils"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -30,30 +32,31 @@ type NetworkAvailability struct {
 }
 
 type Target struct {
-	name      string
-	url       string
-	needProxy bool
+	Url       string `json:"url"`
+	NeedProxy bool   `json:"needProxy"`
 }
 
 func (n *NetworkAvailability) Start() {
 	n.logger = utils.GetLogger("NetworkAvailabilityGauge")
-
-	n.targets = map[string]Target{
-		"baidu": {
-			name:      "baidu",
-			url:       "http://baidu.com",
-			needProxy: false,
-		},
-		"google": {
-			name:      "google",
-			url:       "http://google.com",
-			needProxy: true,
-		},
+	filePath := "targets.json"
+	jsonBytes, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		n.logger.Printf(err.Error())
+		return
+	}
+	n.logger.Printf(string(jsonBytes))
+	err = json.Unmarshal(jsonBytes, &n.targets)
+	if err != nil {
+		n.logger.Printf(err.Error())
+		return
+	}
+	for name, target := range n.targets {
+		n.logger.Printf("got target %s at %s with proxy %t", name, target.Url, target.NeedProxy)
 	}
 
 	n.refreshIntervalInSeconds = utils.GetEnvVarInt("RefreshIntervalInSeconds", 300)
-	n.proxyUrlStr = utils.GetEnvVarString("ProxyUrl", "://invliadURL")
-	var proxyUrl, err = url.Parse(n.proxyUrlStr)
+	n.proxyUrlStr = utils.GetEnvVarString("ProxyUrl", "://invalidURL")
+	proxyUrl, err := url.Parse(n.proxyUrlStr)
 	if err != nil {
 		n.logger.Printf("failed to parse proxy url %q: %s", n.proxyUrlStr, err)
 		n.httpClientWithProxy = nil
@@ -79,7 +82,7 @@ func (n *NetworkAvailability) ServeHTTP(rw http.ResponseWriter, req *http.Reques
 	io.WriteString(rw, fmt.Sprintf("refreshIntervalInSeconds: %d\n", n.refreshIntervalInSeconds))
 	io.WriteString(rw, fmt.Sprintf("proxyUrl: %q\n", n.proxyUrlStr))
 	for name := range avail {
-		io.WriteString(rw, fmt.Sprintf("%s(%q) is at %t\n", name, n.targets[name].url, avail[name] == 1))
+		io.WriteString(rw, fmt.Sprintf("%s(%q) is at %t\n", name, n.targets[name].Url, avail[name] == 1))
 	}
 }
 
@@ -100,12 +103,12 @@ func (n *NetworkAvailability) ticking() {
 func (n *NetworkAvailability) checkAvailability() map[string]float64 {
 	var ret = map[string]float64{}
 	for name, target := range n.targets {
-		n.logger.Printf("checking %s at %s with proxy %t", name, target.url, target.needProxy)
+		n.logger.Printf("checking %s at %s with proxy %t", name, target.Url, target.NeedProxy)
 		var httpClient = http.DefaultClient
-		if target.needProxy && n.httpClientWithProxy != nil {
+		if target.NeedProxy && n.httpClientWithProxy != nil {
 			httpClient = n.httpClientWithProxy
 		}
-		resp, err := httpClient.Get(target.url)
+		resp, err := httpClient.Get(target.Url)
 		if err != nil {
 			n.logger.Printf("got error while checking %s: %s", name, err)
 			ret[name] = 0
