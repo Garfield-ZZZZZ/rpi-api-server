@@ -48,7 +48,7 @@ func (n *NetworkUsageMonitor) Start() {
 	n.logger = utils.GetLogger("NetworkUsageMonitor")
 	n.chainName = utils.GetEnvVarString("CHAIN_NAME", "NETWORK-FILTER")
 	n.commentKey = utils.GetEnvVarString("COMMENT_KEY", "device_name")
-	n.command = utils.GetEnvVarString("COMMAND", fmt.Sprintf("sudo iptables -nxvL %s | grep %s | tr -s ' ' | cut -d ' ' -f 2,3,13", n.chainName, n.commentKey))
+	n.command = utils.GetEnvVarString("COMMAND", fmt.Sprintf("iptables -nxvL %s | grep %s | tr -s ' ' | cut -d ' ' -f 2,3,13", n.chainName, n.commentKey))
 	n.refreshIntervalInSeconds = utils.GetEnvVarInt("RefreshIntervalInSeconds", 300)
 	n.logger.Printf("CHAIN_NAME: %q", n.chainName)
 	n.logger.Printf("COMMENT_KEY: %q", n.commentKey)
