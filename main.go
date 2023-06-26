@@ -19,7 +19,7 @@ func main() {
 	var pluginMap = map[string]plugins.Plugin{
 		"temperature":         &plugins.RpiTemperatureGauge{},
 		"ishome":              &plugins.WhoIsAtHome{},
-		"networkmonitor":      &plugins.NetworkMonitor{},
+		"networkusage":        &plugins.NetworkUsageMonitor{},
 		"networkavailability": &plugins.NetworkAvailability{},
 	}
 
