@@ -21,6 +21,7 @@ func main() {
 		"ishome":              &plugins.WhoIsAtHome{},
 		"networkusage":        &plugins.NetworkUsageMonitor{},
 		"networkavailability": &plugins.NetworkAvailability{},
+		"pwmstatus":           &plugins.PwmGauge{},
 	}
 
 	var plugin, exists = pluginMap[pluginName]
