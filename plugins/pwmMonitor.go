@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -89,7 +90,7 @@ func (p *PwmGauge) getEnabled() bool {
 	if !p.getExported() {
 		return false
 	}
-	var num = p.readFileAsInt64(p.pwmChipFolder + "/enabled")
+	var num = p.readFileAsInt64(p.pwmChipFolder + "/enable")
 	return num == 1
 }
 
@@ -97,7 +98,7 @@ func (p *PwmGauge) getPeroid() int64 {
 	if !p.getExported() {
 		return 0
 	}
-	var num = p.readFileAsInt64(p.pwmChipFolder + "/peroid")
+	var num = p.readFileAsInt64(p.pwmChipFolder + "/period")
 	return num
 }
 
@@ -115,7 +116,8 @@ func (p *PwmGauge) readFileAsInt64(path string) int64 {
 		p.logger.Printf("Error reading file: %v\n", err)
 		return 0
 	}
-	num, err := strconv.ParseInt(string(content), 10, 64)
+    var str = strings.TrimRight(string(content), "\n")
+	num, err := strconv.ParseInt(str, 10, 64)
 	if err != nil {
 		p.logger.Printf("Error converting file content to int64: %v\n", err)
 		return 0
